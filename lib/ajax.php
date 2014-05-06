@@ -98,7 +98,7 @@ class EXIM_Import_Ajax
 		if( $updated ) {
 
 			// allow for other actions that may be related to images
-			do_action( 'exim_after_upload', $post_id );
+			do_action( 'exim_after_upload', $post_id, $external_data, $uploaded_data );
 
 			$ret['success']	= true;
 			$ret['message']	= __( 'Success! The images have been imported and content has been updated.', 'external-image-import' );

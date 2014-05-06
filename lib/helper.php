@@ -162,11 +162,20 @@ class EXIM_Import_Helper
 		// replace my URLs in content
 		$content	= str_replace( $external, $uploaded, $content );
 
+		// set args for updating
+		$args	= array(
+			'ID'			=> $post_id,
+			'post_content'	=> $content
+		);
+
+		// filter the args
+		$args	= apply_filters( 'exim_image_update_args', $args, $post_id, $external, $uploaded );
+
 		// run the update
-		$updated	= wp_update_post( array( 'ID' => $post_id, 'post_content' => $content ) );
+		$update	= wp_update_post( $args );
 
 		// return true / false
-		if ( ! is_wp_error( $updated ) ) {
+		if ( ! is_wp_error( $update ) ) {
 			return true;
 		} else {
 			return false;
@@ -206,10 +215,17 @@ class EXIM_Import_Helper
 		}
 
 		// add a meta string of our external images for replacement
-		update_post_meta( $post_id, '_exim_image_src', $external );
+		if ( ! empty( $external ) ) {
+			update_post_meta( $post_id, '_exim_image_src', $external );
+		}
 
 		// add a meta string of our new images for replacement
-		update_post_meta( $post_id, '_exim_image_new', $uploaded );
+		if ( ! empty( $uploaded ) ) {
+			update_post_meta( $post_id, '_exim_image_new', $uploaded );
+		}
+
+		// allow for other actions that may be related to image meta
+		do_action( 'exim_image_meta_update', $post_id, $external, $uploaded );
 
 	}
 
@@ -251,7 +267,7 @@ class EXIM_Import_Helper
 	static function update_image_data( $image_id, $image_data ) {
 
 		// fetch our cleaned up names
-		$image_name	= self::sanitize_image_name( $image_data );
+		$image_name	= self::sanitize_image_name( $image_id, $image_data );
 
 		// set the args for updating
 		$args	= array(
@@ -279,7 +295,7 @@ class EXIM_Import_Helper
 	 * clean up the image name for saving and uploading
 	 * @return [type] [description]
 	 */
-	static function sanitize_image_name( $image_data ) {
+	static function sanitize_image_name( $image_id, $image_data ) {
 
 		// first check for alt text data
 		$name	= isset( $image_data['alt'] ) && ! empty( $image_data['alt'] ) ? $image_data['alt'] : basename( $image_data['src'] );
@@ -288,10 +304,12 @@ class EXIM_Import_Helper
 		$name	= str_replace( array( '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff' ), '', $name );
 
 		// now send it back sanitized
-		return array(
+		$data	= array(
 			'name'	=> sanitize_key( $name ),
 			'title'	=> sanitize_text_field( $name )
 		);
+
+		return apply_filters( 'exim_image_name_setup', $data, $image_id );
 
 	}
 
