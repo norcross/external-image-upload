@@ -86,7 +86,7 @@ class EXIM_Import_Ajax
 		$updated	= EXIM_Import_Helper::replace_image_urls( $post_id, $external_data, $uploaded_data );
 
 		// make sure images got uploaded
-		if( ! $updated ) {
+		if( ! $updated || empty( $updated ) ) {
 			$ret['success'] = false;
 			$ret['errcode']	= 'NO_UPDATE';
 			$ret['message']	= __( 'The URLs could not be updated in the content.', 'external-image-import' );
@@ -100,8 +100,14 @@ class EXIM_Import_Ajax
 			// allow for other actions that may be related to images
 			do_action( 'exim_after_upload', $post_id, $external_data, $uploaded_data );
 
-			$ret['success']	= true;
-			$ret['message']	= __( 'Success! The images have been imported and content has been updated.', 'external-image-import' );
+			// get our view and redirect links
+			$redirect	= get_edit_post_link( $post_id ).'&exim-update=true';
+			$viewlink	= get_permalink( $post_id );
+
+			$ret['success']		= true;
+			$ret['redirect']	= esc_url( $redirect );
+			$ret['content']		= wp_kses_post( $updated );
+			$ret['message']		= sprintf( __( 'Success! The images have been imported and content has been updated. <a href="%s">View post</a>', 'external-image-import' ), esc_url( $viewlink ) );
 			echo json_encode( $ret );
 			die();
 		}

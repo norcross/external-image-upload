@@ -176,7 +176,7 @@ class EXIM_Import_Helper
 
 		// return true / false
 		if ( ! is_wp_error( $update ) ) {
-			return true;
+			return $content;
 		} else {
 			return false;
 		}

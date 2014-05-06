@@ -26,13 +26,9 @@ class EXIM_Import_Admin
 
 		if ( is_object( $screen ) && in_array( $screen->post_type, $allow ) ) :
 
-			global $post;
-			$redirect	= isset( $post ) && ! empty( $post ) ? get_edit_post_link( $post->ID ).'&exim-update=true' : null;
-
 			wp_enqueue_script( 'exim-admin', plugins_url( '/js/exim.admin.js', __FILE__ ) , array( 'jquery' ), EXIM_IMPORT_VER, true );
 			wp_localize_script( 'exim-admin', 'eximAdmin', array(
 				'defaultMessage'	=> __( 'There was an error in the process. Please try again later.', 'external-image-import' ),
-				'successRedirect'	=> esc_url( $redirect )
 			));
 		endif;
 
