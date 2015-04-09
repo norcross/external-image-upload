@@ -51,7 +51,7 @@ class EXIM_Import_Helper
 
 		// check for empty sources
 		if ( empty( $external ) ) {
-			return;
+			return false;
 		}
 
 		// loop through each one and check against the site URL
@@ -70,7 +70,7 @@ class EXIM_Import_Helper
 
 		// no non-native images. bail.
 		if ( empty( $external ) ) {
-			return;
+			return false;
 		}
 
 		// run our duplicate check
@@ -180,18 +180,6 @@ class EXIM_Import_Helper
 		} else {
 			return false;
 		}
-
-	}
-
-	/**
-	 * helper function to set which post types we are allowing this on
-	 * used in both the button display and loading JS
-	 *
-	 * @return [type] [description]
-	 */
-	static function post_types_allowed() {
-
-		return apply_filters( 'exim_post_types', array( 'post' ) );
 
 	}
 
@@ -310,6 +298,83 @@ class EXIM_Import_Helper
 		);
 
 		return apply_filters( 'exim_image_name_setup', $data, $image_id );
+
+	}
+
+	/**
+	 * helper function to set which post types we are allowing this on
+	 * used in both the button display and loading JS
+	 *
+	 * @return [type] [description]
+	 */
+	static function post_types_allowed() {
+		// get all public types
+		$types	= get_post_types( array( 'public' => true ), 'names' );
+		// exclude attachment because that's redundant
+		unset( $types['attachment'] );
+		// return them filtered
+		return apply_filters( 'exim_post_types', $types );
+	}
+
+	/**
+	 * helper function to set which post statuses we are allowing this on
+	 * used in both the button display and loading JS
+	 *
+	 * @return [type] [description]
+	 */
+	static function post_statuses_allowed() {
+		// return them filtered
+		return apply_filters( 'exim_post_statuses', array( 'publish', 'pending', 'draft', 'future', 'private' ) );
+	}
+
+	/**
+	 * [get_content_items description]
+	 * @param  boolean $total  [description]
+	 * @param  integer $count  [description]
+	 * @param  integer $offset [description]
+	 * @return [type]          [description]
+	 */
+	static function get_content_items( $total = false, $count = 10, $offset = 0 ) {
+
+//		$ids	= get_transient( 'exim_content_items' );
+//		if( ! $ids ) {
+
+			// get my types
+			$types	= self::post_types_allowed();
+
+			// bail without
+			if ( empty( $types ) ) {
+				return false;
+			}
+
+			// get our statuses
+			$statuses	= self::post_statuses_allowed();
+
+			// first check our featured
+			$args	= array(
+				'fields'		=> 'ids',
+				'post_type'		=> $types,
+				'nopaging'		=> true,
+				'post_status'	=> $statuses
+
+			);
+
+			// get our featured items
+			$ids	= get_posts( $args );
+
+			// bail with no items
+			if ( ! $ids ) {
+				return false;
+			}
+
+//			set_transient( 'exim_content_items', $ids, DAY_IN_SECONDS );
+
+//		} // end transient check
+
+		// just return the total count if requested
+		if ( ! empty( $total ) ) {
+			return count( $ids );
+		}
 
 	}
 
